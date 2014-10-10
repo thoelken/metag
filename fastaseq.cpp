@@ -46,7 +46,8 @@ vector<index_entry> createIndex(string filename) {
 	while(getline(fasta, line)) {
 		if(line[0] == '>' || line[0] == '@') {
 			if(!first_entry) {
-				idx << e.title << SEP << e.header_offset << SEP << e.seq_offset << SEP << e.seq_length << SEP << e.line_width << endl;
+				idx << e.title << SEP << e.header_offset << SEP << e.seq_offset;
+				idx << SEP << e.seq_length << SEP << e.line_width << endl;
 				list.push_back(e);
 			} else {
 				first_entry = false;
@@ -66,7 +67,8 @@ vector<index_entry> createIndex(string filename) {
 	fasta.close();
 	
 	if(e.seq_offset > 0) {
-		idx << e.title << SEP << e.header_offset << SEP << e.seq_offset << SEP << e.seq_length << SEP << e.line_width << endl;
+		idx << e.title << SEP << e.header_offset << SEP << e.seq_offset 
+		idx << SEP << e.seq_length << SEP << e.line_width << endl;
 		list.push_back(e);
 	}
 	
