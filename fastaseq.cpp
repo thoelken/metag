@@ -12,15 +12,16 @@ using namespace std;
 
 struct index_entry {
 	string title;
-	int header_offset;
-	int seq_offset;
-	int seq_length;
-	int line_width;
+	unsigned int header_offset;
+	unsigned int seq_offset;
+	unsigned int seq_length;
+	unsigned int line_width;
 };
 
 
-string INDEX_FILE_EXT = ".idx";
-string SEP = "\t";
+const string INDEX_FILE_EXT = ".idx";
+const string SEP = "\t";
+static map<char,char> COMPLEMENT = {{'A','T'}, {'T','A'}, {'G','C'}, {'C','G'}, {'N','N'}};
 
 
 vector<index_entry> createIndex(string filename) {
@@ -101,21 +102,18 @@ vector<index_entry> readIndex(string filename) {
 
 string reverse_complement(string seq) {
 	stringstream rev;
-	map<char,char> tr = {{'A','T'}, {'T','A'}, {'G','C'}, {'C','G'}, {'N','N'}};
 	for(int i = seq.length()-1; i >= 0; i--) {
-		rev << tr[seq[i]];
+		rev << COMPLEMENT[seq[i]];
 	}
 	return rev.str();
 }
 
 
-string getRandomSequence(FILE* fasta, vector<index_entry> index, int length) {
-	index_entry e = index[rand() % index.size()];
-	int pos = -1;
-	while(pos < 0 || pos > e.seq_length - length) {
-		pos = rand() % e.seq_length;
-	}
-	
+string getSubsequence(FILE* fasta, index_entry e, unsigned int from, unsigned int to) {
+	unsigned int pos = from;
+	unsigned int length = to-from;
+	bool minus_strand = false;
+	if(from > to) { pos = to; length = from-to; minus_strand = true; }
 	int num_newlines = (e.line_width - (pos % e.line_width) + length) / e.line_width;
     int seqlen = length + num_newlines;
     char* seq = (char*) calloc (seqlen + 1, sizeof(char));
@@ -130,7 +128,19 @@ string getRandomSequence(FILE* fasta, vector<index_entry> index, int length) {
     string s = seq;
     free(seq);
     s.resize((length)/sizeof(char));
-    stringstream header;
+    if(minus_strand) s = reverse_complement(s);
+    return s;
+}
+
+
+string getRandomSequence(FILE* fasta, vector<index_entry> index, unsigned int length) {
+	index_entry e = index[rand() % index.size()];
+	int pos = -1;
+	while(pos < 0 || pos > (int)e.seq_length - (int)length) {
+		pos = rand() % e.seq_length;
+	}
+	string s = getSubsequence(fasta, e, pos, pos+length);
+	stringstream header;
     header << ">" << e.title;
     if(rand() % 2 == 1) {
     	s = reverse_complement(s);
@@ -147,6 +157,7 @@ int main(const int argc, const char** argv) {
 	vector<index_entry> index = readIndex(string(argv[1]));
 	FILE* fasta = fopen(argv[1], "r");
 	srand(time(0));
+	cerr << getSubsequence(fasta, index[0], 0, 50) << endl << "=======" << endl;
 	cerr << getRandomSequence(fasta, index, 99) << endl;
 	cerr << getRandomSequence(fasta, index, 99) << endl;
 	cerr << getRandomSequence(fasta, index, 99) << endl;
