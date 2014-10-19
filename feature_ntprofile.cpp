@@ -2,11 +2,12 @@
 #include <iostream>
 #include <array>
 #include <vector>
+#include <bitset>
 
 using namespace std;
 
-array<int, 4> encode_nt(char nt) {
-	array<int, 4> encoding = {0,0,0,0};
+bitset<4> encode_nt(char nt) {
+	bitset<4> encoding;// = {0,0,0,0};
 	switch(nt) {
 		case 'A': encoding[0] = 1; break;
 		case 'C': encoding[1] = 1; break;
@@ -15,6 +16,14 @@ array<int, 4> encode_nt(char nt) {
 		default: cerr << "nucleotide unaccepted in sequence " << nt << endl;
 	}
 	return encoding;
+}
+
+vector<bool> dct(vector<bool> signal) {
+	vector<bool> output;
+	for(int i=0; i<signal.size(); i++) {
+		
+	}
+	return signal;
 }
 
 array<float, 4> extract(string s) {
@@ -36,8 +45,8 @@ array<float, 4> extract(string s) {
 	return freq;
 }
 
-array<vector<int>, 4> decompose(string sequence) {
-	array<vector<int>, 4> channels;
+array<vector<bool>, 4> decompose(string sequence) {
+	array<vector<bool>, 4> channels;
 	for(auto it=sequence.begin(); it!=sequence.end(); ++it) {
 		auto signal = encode_nt(*it);
 		for(int i=0; i<4; i++) {
