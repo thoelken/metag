@@ -38,6 +38,24 @@ vector<double> dct(vector<bool> x, int N = 5) {
 	return output;
 }
 
+vector<bool> nt_to_binary(string seq) {
+	vector<bool> bin;
+	for(char c : seq) {
+		switch(c) {
+			case 'A':
+				bin.push_back(0); bin.push_back(0); break;
+			case 'C':
+				bin.push_back(0); bin.push_back(1); break;
+			case 'G':
+				bin.push_back(1); bin.push_back(0); break;
+			case 'T':
+				bin.push_back(1); bin.push_back(1); break;
+			default: cerr << "nucleotide unaccepted in sequence " << c << endl;
+		}
+	}
+	return bin;
+}
+
 /// average nucleotide frequency
 array<float, 4> extract(string s) {
 	int last_pos[] = {0,0,0,0};
@@ -73,6 +91,7 @@ array<vector<bool>, 4> decompose(string sequence) {
 int main(const int argc, const char* argv[]) {
 	auto channels = decompose(string(argv[1]));
 	auto frequencies = extract(string(argv[1]));
+	
 	for(int i=0; i<4; i++) {
 		cerr << "FREQ=" << frequencies[i] << " BINARY_SIGNAL= c(";
 		for(auto s : channels[i]) {
@@ -84,5 +103,12 @@ int main(const int argc, const char* argv[]) {
 		}
 		cerr << ")" << endl;
 	}
+
+	auto binary = nt_to_binary(string(argv[1]));
+	cerr << "binary = c(";
+	for(auto s : binary) {
+		cerr << s << ",";
+	}
+	cerr << ")" << endl;
 	return 0;
 }
