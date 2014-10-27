@@ -24,18 +24,18 @@ const string SEP = "\t";
 static map<char,char> COMPLEMENT = {{'A','T'}, {'T','A'}, {'G','C'}, {'C','G'}, {'N','N'}};
 
 
-vector<index_entry> createIndex(string filename) {
+vector<index_entry> createIndex(string fastaname, string indexname) {
 	ifstream fasta;
-	fasta.open(filename.c_str());
+	fasta.open(fastaname.c_str());
 	if(!fasta.is_open()) {
-		cerr << "could not open file " << filename << endl;
+		cerr << "could not open file " << fastaname << endl;
 	    exit(1);
 	}
 	ofstream idx;
-	idx.open((filename + INDEX_FILE_EXT).c_str());
+	idx.open(indexname.c_str());
 	if(!idx.is_open()) {
 		fasta.close();
-		cerr << "could not create index file " << filename << endl;
+		cerr << "could not create index file " << indexname << endl;
 	    exit(1);
 	}
 	string line;
@@ -67,7 +67,7 @@ vector<index_entry> createIndex(string filename) {
 	fasta.close();
 	
 	if(e.seq_offset > 0) {
-		idx << e.title << SEP << e.header_offset << SEP << e.seq_offset 
+		idx << e.title << SEP << e.header_offset << SEP << e.seq_offset; 
 		idx << SEP << e.seq_length << SEP << e.line_width << endl;
 		list.push_back(e);
 	}
@@ -79,11 +79,11 @@ vector<index_entry> createIndex(string filename) {
 }
 
 
-vector<index_entry> readIndex(string filename) {
+vector<index_entry> readIndex(string fastaname, string indexname) {
 	ifstream file;
-	file.open((filename + INDEX_FILE_EXT).c_str());
+	file.open(fastaname.c_str());
 	if(!file.is_open()) {
-		return createIndex(filename);
+		return createIndex(fastaname, indexname);
 	}
 	vector<index_entry> index;
 	string line;
@@ -155,9 +155,31 @@ string getRandomSequence(FILE* fasta, vector<index_entry> index, unsigned int le
 }
 
 
+void print_help() {
+	cout << "This is fastaseq 0.2";
+}
+
+
 int main(const int argc, const char** argv) {
-	vector<index_entry> index = readIndex(string(argv[1]));
-	FILE* fasta = fopen(argv[1], "r");
+	string fastaname; string indexname;
+	for(int i=1; i<argc; i++) {
+		string p = string(argv[i]);
+		if(p.compare("-h") == 0 || p.compare("--help") == 0) { 
+			print_help(); 
+		} else if(p.compare("-f") == 0 || p.compare("--fasta") == 0) {
+			fastaname = string(argv[++i]);
+		} else if(p.compare("-i") == 0 || p.compare("--index") == 0) {
+			indexname = string(argv[++i]);
+		}
+	}
+	if(fastaname.empty()) { 
+		cerr << "no fasta file parameter was given! use '-f' option" << endl; 
+		print_help();
+		return -1;
+	}
+	if(indexname.empty()) { indexname = fastaname + INDEX_FILE_EXT; }
+	vector<index_entry> index = readIndex(fastaname, indexname);
+	FILE* fasta = fopen(fastaname.c_str(), "r");
 	srand(time(0));
 	cerr << getSubsequence(fasta, index[0], 0, 50) << endl << "=======" << endl;
 	cerr << getRandomSequence(fasta, index, 99) << endl;
