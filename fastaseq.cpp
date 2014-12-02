@@ -81,8 +81,8 @@ vector<index_entry> createIndex(string fastaname, string indexname) {
 
 vector<index_entry> readIndex(string fastaname, string indexname) {
 	ifstream file;
-	file.open(fastaname.c_str());
-	if(!file.good()) {
+	file.open(indexname.c_str());
+	if(!file.is_open()) {
 		return createIndex(fastaname, indexname);
 	}
 	vector<index_entry> index;
