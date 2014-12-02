@@ -82,7 +82,7 @@ vector<index_entry> createIndex(string fastaname, string indexname) {
 vector<index_entry> readIndex(string fastaname, string indexname) {
 	ifstream file;
 	file.open(fastaname.c_str());
-	if(!file.is_open()) {
+	if(!file.good()) {
 		return createIndex(fastaname, indexname);
 	}
 	vector<index_entry> index;
@@ -143,15 +143,15 @@ string getRandomSequence(FILE* fasta, vector<index_entry> index, unsigned int le
 	}
 	string s = getSubsequence(fasta, e, pos, pos+length);
 	stringstream header;
-    header << ">" << e.title;
-    if(rand() % 2 == 1) {
-    	s = reverse_complement(s);
-    	header << " complement " << (pos+length+1) << "-" << (pos+1) << endl;
-    } else {
-    	header << " " << (pos+1) << "-" << (pos+length+1) << endl;
-    }
-    header << s;
-    return header.str();
+	header << ">" << e.title;
+	if(rand() % 2 == 1) {
+    		s = reverse_complement(s);
+		header << " complement " << (pos+length+1) << "-" << (pos+1) << endl;
+	} else {
+		header << " " << (pos+1) << "-" << (pos+length+1) << endl;
+	}
+	header << s;
+	return header.str();
 }
 
 
@@ -161,7 +161,7 @@ void print_help() {
 
 
 int main(const int argc, const char** argv) {
-	string fastaname; string indexname;
+	string fastaname; string indexname; int len_seq = 100; int batch = 1;
 	for(int i=1; i<argc; i++) {
 		string p = string(argv[i]);
 		if(p.compare("-h") == 0 || p.compare("--help") == 0) { 
@@ -170,6 +170,12 @@ int main(const int argc, const char** argv) {
 			fastaname = string(argv[++i]);
 		} else if(p.compare("-i") == 0 || p.compare("--index") == 0) {
 			indexname = string(argv[++i]);
+		} else if(p.compare("-l") == 0 || p.compare("--length") == 0) {
+			istringstream ss(argv[++i]);
+			if(!(ss >> len_seq)) { cerr << "illegal length (-l) parameter: " << argv[i] << endl; return -1; }
+		} else if(p.compare("-b") == 0 || p.compare("--batch") == 0) {
+			istringstream ss(argv[++i]);
+			if(!(ss >> batch)) { cerr << "illegal batch (-b) size: " << argv[i] << endl; return -1; }
 		}
 	}
 	if(fastaname.empty()) { 
@@ -177,14 +183,13 @@ int main(const int argc, const char** argv) {
 		print_help();
 		return -1;
 	}
-	if(indexname.empty()) { indexname = fastaname + INDEX_FILE_EXT; }
+	if(indexname.empty()) { indexname = fastaname + INDEX_FILE_EXT; createIndex(fastaname, indexname); }
 	vector<index_entry> index = readIndex(fastaname, indexname);
 	FILE* fasta = fopen(fastaname.c_str(), "r");
 	srand(time(0));
-	cerr << getSubsequence(fasta, index[0], 0, 50) << endl << "=======" << endl;
-	cerr << getRandomSequence(fasta, index, 99) << endl;
-	cerr << getRandomSequence(fasta, index, 99) << endl;
-	cerr << getRandomSequence(fasta, index, 99) << endl;
+	for(int i = 0; i<batch; i++) {
+		cout << getRandomSequence(fasta, index, len_seq) << endl;
+	}
 	cerr << getRandomSequence(fasta, index, 99) << endl;
 	fclose(fasta);
 }
